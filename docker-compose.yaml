@@ -1,0 +1,54 @@
+services:
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: always
+    user: postgres
+    secrets:
+      - db-password
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      - POSTGRES_DB=application
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ['CMD', 'pg_isready']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres-migrator:
+    build:
+      context: .
+      dockerfile: apps/user/prisma/Dockerfile
+    secrets:
+      - db-password
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      - POSTGRES_DB=application
+    env_file:
+      - apps/user/.env
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+  user-service:
+    build:
+      context: .
+      dockerfile: apps/user/Dockerfile
+    env_file:
+      - apps/user/.env
+    ports:
+      - 8000:8000
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      postgres-migrator:
+        condition: service_completed_successfully
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: apps/user/prisma/password.txt
