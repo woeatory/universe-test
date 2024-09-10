@@ -13,11 +13,13 @@ export class PrismaUserRepository extends UserRepository {
     email: string;
     passwordHash: string;
   }): Promise<User> {
-    return await this.prisma.user.create({
-      data: {
-        email: data.email,
-        password_hash: data.passwordHash,
-      },
-    });
+    try {
+      return await this.prisma.user.create({
+        data: {
+          email: data.email,
+          password_hash: data.passwordHash,
+        },
+      });
+    } catch (error) {}
   }
 }
