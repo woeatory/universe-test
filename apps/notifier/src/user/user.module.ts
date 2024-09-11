@@ -3,12 +3,14 @@ import { SqsService } from 'src/sqs/sqs.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserPoller } from './presentation/user.poller';
 import { UserService } from './domain/user.service';
+import { ApnsService } from 'src/apn/apn.service';
 
 @Module({
   imports: [ConfigModule],
   providers: [
     UserPoller,
     UserService,
+    ApnsService,
     SqsService,
     {
       provide: 'SQS_QUEUE_URL',
